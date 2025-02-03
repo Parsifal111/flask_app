@@ -58,6 +58,16 @@ jobs:
           kubectl apply -f k8s/
         # Применяем манифесты Kubernetes для деплоя приложения
 
+      - name: Apply Service manifest
+        run: |
+          kubectl apply -f k8s/service.yaml
+        # Применяем манифест для Service, чтобы создать сервис для приложения
+
+      - name: Apply Ingress manifest
+        run: |
+          kubectl apply -f k8s/ingress.yaml
+        # Применяем манифест для Ingress, чтобы настроить внешний доступ
+
       - name: Wait for deployment to complete
         run: |
           kubectl rollout status deployment flask-app --timeout=300s
@@ -67,5 +77,3 @@ jobs:
         run: |
           kubectl rollout restart deployment flask-app
         # Перезапускаем приложение после деплоя
-
-

@@ -33,40 +33,32 @@ jobs:
 
       - name: Install Minikube
         run: |
-          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          sudo mv minikube-linux-amd64 /usr/local/bin/minikube
+          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          sudo mv minikube /usr/local/bin
           sudo chmod +x /usr/local/bin/minikube
-        # Установка Minikube, если он не установлен
+        # Устанавливаем Minikube
+
+      - name: Start Minikube
+        run: |
+          minikube start --driver=docker
+        # Запускаем Minikube в Docker (если используете Minikube в Docker)
 
       - name: Setup kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
-        # Установка kubectl для взаимодействия с кластером Kubernetes
+        # Устанавливаем kubectl для взаимодействия с Kubernetes
 
-      - name: Configure kubectl to use Minikube
+      - name: Set Minikube context for kubectl
         run: |
-          echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" > minikube.env
-          kubectl config set-cluster minikube --server=https://${{ secrets.SERVER_HOST }} --insecure-skip-tls-verify=true
-          kubectl config set-context minikube --cluster=minikube
           kubectl config use-context minikube
-        # Настройка kubectl для подключения к Minikube
+        # Настроим kubectl для работы с Minikube
 
       - name: Apply Kubernetes manifests
         run: |
           kubectl apply -f k8s/
-        # Применяем манифесты Kubernetes для деплоя приложения
-
-      - name: Apply Service manifest
-        run: |
-          kubectl apply -f k8s/service.yaml
-        # Применяем манифест для Service, чтобы создать сервис для приложения
-
-      - name: Apply Ingress manifest
-        run: |
-          kubectl apply -f k8s/ingress.yaml
-        # Применяем манифест для Ingress, чтобы настроить внешний доступ
+        # Применяем манифесты для деплоя приложения
 
       - name: Wait for deployment to complete
         run: |

@@ -1,40 +1,37 @@
-name: Deploy Flask App  # Название пайплайна
+name: Deploy to Minikube
 
 on:
   push:
     branches:
-      - main  # Запуск при пуше в main
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Получение кода из репозитория
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Логин в Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Setup kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
 
-      - name: Сборка Docker-образа
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/flask_app:latest .
+      - name: Configure kubectl to use Minikube
+        run: |
+          echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" > minikube.env
+          echo "Setting Minikube context"
+          kubectl config set-cluster minikube --server=https://${{ secrets.SERVER_HOST }} --insecure-skip-tls-verify=true
+          kubectl config set-context minikube --cluster=minikube
+          kubectl config use-context minikube
 
-      - name: Публикация в Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/flask_app:latest
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/
 
-  deploy:
-    needs: build  # Запускается после успешной сборки
-    runs-on: ubuntu-latest
+      - name: Restart application
+        run: |
+          kubectl rollout restart deployment flask-app
 
-    steps:
-      - name: Подключение к серверу и развертывание контейнера
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/flask_app:latest
-            docker stop flask_app || true
-            docker rm flask_app || true
-            docker run -d -p 80:80 --name flask_app ${{ secrets.DOCKER_USERNAME }}/flask_app:latest

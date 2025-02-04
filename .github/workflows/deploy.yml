@@ -39,10 +39,6 @@ jobs:
 
       - name: Set up SSH for deployment
         run: |
-            sudo mkdir -p ~/.ssh
-            sudo chmod 700 ~/.ssh
-            echo "PRIVATE_KEY_CONTENT" > ~/.ssh/id_rsa
-            sudo chmod 600 ~/.ssh/id_rsa
             ssh-keyscan -H 192.168.27.127 >> ~/.ssh/known_hosts
             sudo chmod 644 ~/.ssh/known_hosts
           # Добавляем сервер в список известных хостов

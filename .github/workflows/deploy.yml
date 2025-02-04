@@ -1,4 +1,4 @@
-name: Deploy to Minikube
+name: Deploy to Server and Docker Hub
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted # ubuntu-latest # Раскоментировать для обычного тестирования
+    runs-on: ubuntu-latest  # Используем стандартную Ubuntu машину для выполнения задачи
 
     steps:
       - name: Checkout repository
@@ -26,46 +26,70 @@ jobs:
           docker build -t blackcat34/flask_app:1.0.0 .
         # Сборка Docker-образа с тегом
 
-      - name: Push Docker image
+      - name: Push Docker image to Docker Hub
         run: |
           docker push blackcat34/flask_app:1.0.0
         # Пушим образ в Docker Hub
 
-      - name: Install Minikube
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+        # Устанавливаем Ansible
+
+      - name: Set up SSH for deployment
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          # Настроим SSH для подключения к серверу
+
+          ssh-keyscan -H 192.168.27.127 >> ~/.ssh/known_hosts
+          # Добавляем сервер в список известных хостов
+
+      - name: Run Ansible playbook to deploy the app
+        run: |
+          ansible-playbook -i inventory.ini playbook.yml
+        # Запускаем Ansible playbook для деплоя приложения на сервер
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        
+      - name: Install Minikube (if needed for Kubernetes deployment)
         run: |
           curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
           sudo mv minikube /usr/local/bin
           sudo chmod +x /usr/local/bin/minikube
-        # Устанавливаем Minikube
+        # Устанавливаем Minikube (если нужно для развертывания в Kubernetes)
 
-      - name: Start Minikube
+      - name: Start Minikube (if needed for Kubernetes deployment)
         run: |
           minikube start --driver=docker
-        # Запускаем Minikube в Docker (если используете Minikube в Docker)
+        # Запускаем Minikube в Docker (если используете Minikube для Kubernetes)
 
-      - name: Setup kubectl
+      - name: Setup kubectl (if needed for Kubernetes deployment)
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
-        # Устанавливаем kubectl для взаимодействия с Kubernetes
+        # Устанавливаем kubectl для работы с Kubernetes
 
-      - name: Set Minikube context for kubectl
+      - name: Set Minikube context for kubectl (if needed for Kubernetes deployment)
         run: |
           kubectl config use-context minikube
-        # Настроим kubectl для работы с Minikube
+        # Настроим kubectl для работы с Minikube (если требуется)
 
-      - name: Apply Kubernetes manifests
+      - name: Apply Kubernetes manifests (if using Kubernetes)
         run: |
           kubectl apply -f k8s/
-        # Применяем манифесты для деплоя приложения
+        # Применяем манифесты для деплоя приложения в Kubernetes (если нужно)
 
-      - name: Wait for deployment to complete
+      - name: Wait for deployment to complete (if using Kubernetes)
         run: |
           kubectl rollout status deployment flask-app --timeout=300s
-        # Ожидаем завершения деплоя приложения
+        # Ожидаем завершения деплоя приложения в Kubernetes (если нужно)
 
-      - name: Restart application
+      - name: Restart application (if needed after deployment)
         run: |
           kubectl rollout restart deployment flask-app
-        # Перезапускаем приложение после деплоя
+        # Перезапускаем приложение после деплоя в Kubernetes (если нужно)
+

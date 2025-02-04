@@ -1,0 +1,31 @@
+---
+- name: Install Docker on the server
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Start and enable Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Pull Docker image for Flask app from Docker Hub
+  docker_image:
+    name: blackcat34/flask_app:1.0.0
+    source: pull
+  become: yes
+
+- name: Run Flask app container
+  docker_container:
+    name: flask-app
+    image: blackcat34/flask_app:1.0.0
+    state: started
+    ports:
+      - "80:80"  # Открытие порта 80 на хосте
+  become: yes
+
+

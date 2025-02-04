@@ -1,0 +1,11 @@
+---
+- name: Deploy Flask app on a separate server
+  hosts: web_servers
+  become: yes
+  vars:
+    app_name: flask-app
+    app_port: 80
+    docker_image: "blackcat34/flask_app:1.0.0"
+
+  roles:
+    - deploy_app

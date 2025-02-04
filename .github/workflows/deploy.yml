@@ -41,8 +41,9 @@ jobs:
       - name: Set up SSH for deployment
         run: |
           sudo mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "PRIVATE_KEY_CONTENT" | sudo tee ~/.ssh/id_rsa > /dev/null
+          sudo chmod 600 ~/.ssh/id_rsa
+          sudo ssh-keyscan -H 192.168.27.127 >> ~/.ssh/known_hosts
           # Настроим SSH для подключения к серверу
 
           ssh-keyscan -H 192.168.27.127 >> ~/.ssh/known_hosts

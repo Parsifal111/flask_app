@@ -16,4 +16,5 @@ spec:
         - name: flask-app
           image: blackcat34/flask_app:1.0.0
           ports:
-            - containerPort: 5000
+            - containerPort: 80
+

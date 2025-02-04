@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Используем стандартную Ubuntu машину для выполнения задачи
+    runs-on: self-hosted  # Используем стандартную Ubuntu машину для выполнения задачи
 
     steps:
       - name: Checkout repository

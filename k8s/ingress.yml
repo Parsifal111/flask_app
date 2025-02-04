@@ -6,7 +6,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - host: flask-app # или любое другое имя
+  - host: flask-app.<minikube_ip>.nip.io  # Используем Minikube IP для локальной разработки
     http:
       paths:
       - path: /
@@ -15,4 +15,4 @@ spec:
           service:
             name: flask-app
             port:
-              number: 5000
+              number: 80  # Используем порт 80 для обращения через Ingress

@@ -6,7 +6,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - host: flask-app.<minikube_ip>.nip.io  # Используем Minikube IP для локальной разработки
+  - host: flask-app.local  # Используем Minikube IP для локальной разработки
     http:
       paths:
       - path: /

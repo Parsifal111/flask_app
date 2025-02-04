@@ -37,12 +37,6 @@ jobs:
           sudo apt install -y ansible
         # Устанавливаем Ansible
 
-      - name: Set up SSH for deployment
-        run: |
-            ssh-keyscan -H 192.168.27.127 >> ~/.ssh/known_hosts
-            sudo chmod 644 ~/.ssh/known_hosts
-          # Добавляем сервер в список известных хостов
-
       - name: Run Ansible playbook to deploy the app
         run: |
           ansible-playbook -i inventory.ini playbook.yml

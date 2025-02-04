@@ -6,7 +6,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - host: flask-app.local # или любое другое имя
+  - host: flask-app # или любое другое имя
     http:
       paths:
       - path: /
